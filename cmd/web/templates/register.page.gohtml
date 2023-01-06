@@ -1,0 +1,148 @@
+{{template "base" .}}
+
+{{define "title" }}
+Authorization Page 
+{{end}}
+
+{{define "content"}}
+    {{if .ErrorData}}
+      {{/* for displaying errors, if any */}}
+      {{range $i, $v := .ErrorData}}
+      <div class="alert alert-danger text-center" id="reg-messages">{{$v}}</div>
+      {{end}}
+    {{end}}
+
+
+    <h2 class="mt-2 text-left mb-3">Sign up</h2>
+    <hr>
+    <form action="/succeeded-registration"
+        class="d-block row g-3 needs-validation" 
+        method="post"
+        id="register_form"
+        autocomplete="off"
+        novalidate="">
+        
+    <div class="col-md-6">
+      <label for="email" class="form-label">Username</label>
+      <input type="text" placeholder="Superuser3301" required="" autocomplete="register_username" class="form-control" id="reg-username" name="reg-username">
+    </div>
+      
+    <div class="col-md-6">
+      <label for="email" class="form-label">First name</label>
+      <input type="text" placeholder="Sam" required="" autocomplete="register_username" class="form-control" id="reg-firstname" name="reg-firstname">
+    </div>
+
+     <div class="col-md-6">
+      <label for="email" class="form-label">Surname</label>
+      <input type="text" placeholder="Smith" required="" autocomplete="register_surname" class="form-control" id="reg-surname" name="reg-surname">
+    </div>
+
+    <div class="col-md-6">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" placeholder="example@gmail.com" required="" autocomplete="reg_email" class="form-control" id="reg-email" name="reg-email">
+    </div>
+      
+    <div class="col-md-6">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" placeholder="********" required=""  class="form-control" id="reg_password" autocomplete="reg_password" name="reg_password">
+    </div>
+
+    <div class="col-md-6">
+      <label for="password" class="form-label">Confirm password</label>
+      <input type="password" placeholder="********" required=""  class="form-control" id="repeat_password" autocomplete="repeat_password" name="repeat_password">
+    </div>
+      
+    <div class="col-12">
+      <label for="address" class="form-label">Address</label>
+      <input type="text" class="form-control" required="" autocomplete="reg_address" name="reg-address1" id="reg-address1" placeholder="1234 Main St">
+    </div>
+
+    <div class="col-12">
+      <label for="address2" class="form-label">Address 2</label>
+      <input type="text" class="form-control" required="" autocomplete="reg_address1" id="reg-address2" name="reg-address2" placeholder="Apartment, studio, or floor">
+    </div>
+
+    <div class="col-12">
+      <label for="address" class="form-label">Date of birth </label>
+      <input type="date" class="form-control" required="" autocomplete="reg_dob" name="reg-date-of-birth" id="reg-date-of-birth" placeholder="1234 Main St">
+    </div>
+
+
+    <div class="col-md-6">
+      <label for="city" class="form-label">City</label>
+      <input type="text" required=""  class="form-control" autocomplete="reg_city" id="reg-city" name="reg-city">
+    </div>
+
+    <div class="col-6">
+      <div class="form-check">
+         <button type="submit" class="btn btn-primary">Submit</button>
+      </div>
+    </div>
+	</form>
+        
+		{{end}}
+
+    {{define "js"}}
+        <script> 
+        let password
+        let repeatPassword
+				const regMessages = document.getElementById("reg-messages")   
+        function showRegError(msg) {
+            regMessages.classList.add("alert-danger");
+            regMessages.classList.remove("alert-success");
+            regMessages.classList.remove("d-none");
+            regMessages.innerText = msg;
+        }
+
+        function showRegSuccess() {
+            regMessages.classList.remove("alert-danger");
+            regMessages.classList.add("alert-success");
+            regMessages.classList.remove("d-none");
+            regMessages.innerText = "Authorization successful";
+        }
+
+        function val() {
+            let form = document.getElementById("register_form");
+        
+            if (form.checkValidity() == false) {
+        	    this.event.preventDefault();
+      	      this.event.stopPropagation();
+    	        form.classList.add("was-validated");
+  	          return;
+	        	}
+            form.classList.add("was-validated");
+
+            password = document.getElementById("reg-password").value;
+            repeatPassword = document.getElementById("repeat_password").value;
+
+            {{/* {{ OR USERNAME, EMAIL ALREADY IN DB }} */}}
+            const request = {
+                username: document.getElementById("reg-username").value,
+                email: document.getElementById("reg-email").value,
+                password: password,
+                repeatPassword: repeatPassword,
+                date_of_birth: document.getElementById("reg-date-of-birth"),
+                address1: document.getElementById("reg-address1").value,
+                address2: document.getElementById("reg-address2").value,
+                city: document.getElementById("reg-city").value,
+            }
+
+            const requestOptions = {
+                method: 'post',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-type': 'application/json'
+                },
+                body: JSON.stringify(request),
+            }
+            {{/* {{ LOCALHOST:4001/API/AUTHORIZATE -> AUTHORIATION }} */}}
+						fetch("/process-register-data", requestOptions)
+							.then(response => response.json())
+							.then(response => {
+                  let data;
+                  data = JSON.Parse(response);      
+                  console.log(data)          
+							})
+        }
+        </script>
+    {{end}}

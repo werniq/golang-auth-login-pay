@@ -1,0 +1,14 @@
+{{template "base" .}}
+
+{{define "title"}}
+    Succeeded Registration! Please Tap button below!
+{{end}}
+
+{{define "content" }}
+    <h2 class="mt-2 text-left mb-3">Successfull registration!</h2>
+		<h2 class="mt-2 text-left mb-3">Please, click link below, if you want navigate to login page</h2>
+		<h2 class="mt-2 text-left mb-3">Your Data:</h2>
+		{{range $i, $v := .Data }}
+			{{$i}}:{{$v}}
+    	{{end}}
+{{end}}
