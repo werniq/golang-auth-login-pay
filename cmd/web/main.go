@@ -58,7 +58,7 @@ func main() {
 	
 	cfg.api = "4001"
 	cfg.port = 4000
-	cfg.db.dsn = "user=postgres dbname=potentially_deployed_site password=Matwyenko1_ host=localhost sslmode=disable"
+	cfg.db.dsn = "db.dsn"
 	cfg.env = "development"
 
 	cfg.stripe.key = os.Getenv("STRIPE_KEY")

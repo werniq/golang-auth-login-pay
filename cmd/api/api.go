@@ -70,7 +70,7 @@ func main() {
 	var cfg config
 
 	cfg.port = 4001
-	cfg.db.dsn = "user=postgres dbname=postgres password=Matwyenko1_ host=localhost sslmode=disable"
+	cfg.db.dsn = "db.dsn"
 	cfg.env = "development"
 
 	cfg.stripe.key = os.Getenv("STRIPE_KEY")
