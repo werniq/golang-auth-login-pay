@@ -36,7 +36,7 @@ type TransactionData struct {
 
 func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) {
 	var request struct {
-		Username string `json:"username"`
+		// Username string `json:"username"`
 		Email 	 string `json:"email"`
  		Password string `json:"password"`
 	}	
@@ -46,6 +46,32 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 		app.BadRequest(w, r, err)
 		return
 	}
+
+
+	// get the user from database by email or username 
+	user, err := app.database.GetUserByEmailOrUsername(request.Email)
+	if err != nil {
+		app.InvalidCredentials(w)
+		return
+	}
+
+	// validate the password, with one from database
+	validPassword, err := app.ValidatePassword(user.Password, request.Password)
+
+	if !validPassword {
+		app.InvalidCredentials(w)
+		return
+	}
+
+	if err != nil {
+		app.InvalidCredentials(w)
+		return
+	}
+
+	// At this point, all "tests" should be passed, and if username is in database, and
+	// password equal to one from db, user have to be right
+	// So, we can generate authentication token
+	token, err := 
 
 	var payload struct {
 		Error bool `json:"error"`
@@ -59,3 +85,7 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
 }	
+
+// func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	
+// }
