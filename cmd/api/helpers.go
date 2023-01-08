@@ -85,7 +85,7 @@ func (app *application) InvalidCredentials(w http.ResponseWriter) error {
 }
 
 func (app *application) ValidatePassword(hash, password string) (bool, error) {
-	err := bcrypt.CompareHashAndPassword([]byte(request.Password), []byte(user.Password))
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
+	"log"
 	"time"
 )
 
@@ -47,7 +48,7 @@ func GenerateToken(userID int, timeToLive time.Duration, scope string) (*Token, 
 	return token, nil
 }
 
-func (m *DBModel) InsertToken(t *Token, u *User) error {
+func (m *DBModel) InsertToken(t *Token, u User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
 	defer cancel()
 
@@ -73,4 +74,36 @@ func (m *DBModel) InsertToken(t *Token, u *User) error {
 	return nil
 }
 
-func (m *DBModel) 
+
+func (m *DBModel) GetUserForToken(token string) (*User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	tokenHash := sha256.Sum256([]byte(token))
+	var user User
+
+	query := `
+		select
+			u.id, u.first_name, u.last_name, u.email
+		from
+			users u
+			inner join tokens t on (u.id = t.user_id)
+		where
+			t.token_hash = ?
+			and t.expiry > ?
+	`
+
+	err := m.Db.QueryRowContext(ctx, query, tokenHash[:], time.Now()).Scan(
+		&user.ID,
+		&user.Firstname,
+		&user.Lastname,
+		&user.Email,
+	)
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return &user, nil
+}

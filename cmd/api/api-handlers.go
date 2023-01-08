@@ -2,7 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"strings"
+	"time"
+	"web-application/internal/models"
 )
 
 type stripePayload struct {
@@ -68,24 +73,90 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// At this point, all "tests" should be passed, and if username is in database, and
-	// password equal to one from db, user have to be right
-	// So, we can generate authentication token
-	token, err := 
+	// Generate token for user
+	token, err := models.GenerateToken(user.ID, 24 * time.Hour, models.ScopeAuthentication)
+	if err != nil {
+		app.BadRequest(w, r, err)
+		return 
+	}
+	
+	// Save to database
+	err = app.database.InsertToken(token, user)
+	if err != nil {
+		app.BadRequest(w, r, err)
+		return
+	}
+
 
 	var payload struct {
-		Error bool `json:"error"`
+		Error 	bool 		  `json:"error"`
+		Message string 		  `json:"message"`
+		Token	*models.Token `json:"token"`
+	}
+
+
+	payload.Error = false
+	payload.Message = "Success"
+	payload.Token = token
+
+	out, err := json.MarshalIndent(payload, "", "\t")
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(out)
+
+
+}	
+
+func (app *application) AuthenticateToken(r *http.Request) (*models.User, error) {
+	authorizationToken := r.Header.Get("Authorization")
+	if authorizationToken == "" {
+		return nil, errors.New("no authorization token recieved")
+	}
+
+	headerParts := strings.Split(authorizationToken, " ")
+	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		return nil, errors.New("no authorization header recieved")
+	}
+
+	token := headerParts[1]
+	if len(token) != 26 {
+		return nil, errors.New("authorization token wrong size")
+	}
+
+	user, err := app.database.GetUserForToken(token)
+	if err != nil {
+		return nil, errors.New("no matching users found")
+	}
+
+
+	return user, nil
+}
+
+func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	user, err := app.AuthenticateToken(r)
+	if err != nil {
+		app.InvalidCredentials(w)
+		return
+	}
+
+	var payload struct {
+		Error 	bool `json:"error"`
 		Message string `json:"message"`
 	}
 
 	payload.Error = false
-	payload.Message = "Success"
+	payload.Message = fmt.Sprintf("authenticated user %s", user.Email)
 
-	out, _ := json.MarshalIndent(payload, "", "\t")
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	out, err := json.MarshalIndent(payload, "", "\t")
+	if err != nil {
+		return 
+	}
 	w.Write(out)
-}	
-
-// func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
-	
-// }
+}
