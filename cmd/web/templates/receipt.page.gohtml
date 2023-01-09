@@ -1,0 +1,14 @@
+{{template "base" .}}
+
+{{define "title"}}
+Registration succeeded!
+{{end}}
+
+{{define "content"}}
+    {{/* {{$user := index .Data "userData" }} */}}
+    <h2 class="mt-3">Registration succeeded </h2>
+    <hr>
+    {{/* {{ range $i, $v := .Data "userData"}} */}}
+    {{/* <h2 class="mt-3">Your data </h2> */}}
+    {{/* <p>{{$i}}: {{$v}}</p> */}}
+{{end}}

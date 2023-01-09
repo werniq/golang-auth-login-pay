@@ -9,17 +9,16 @@ import (
 func (app *application) routes() http.Handler {
 	router := chi.NewRouter()
 
+	router.Use(SessionLoad)
+
 	router.Get("/login", app.Authentication)
 	router.Get("/", app.HomeHandler)
-	// router.Get("/process-register-data", app.ProcessRegisterData)
-	// router.Get("/process-register-data", app.)
+
 	router.Get("/signup", app.Authorization)
-	router.Post("/succeeded-registration", app.SucceededRegistration)
-	
+	router.Post("/succeeded-registration", app.ProcessRegisterData)
+	router.Get("/receipt", app.Receipt)
 
-	// mux.Get("/virtual-terminal", app.VirtualTerminal)
-	// mux.Post("/virtual-terminal-payment-succeeded", app.VirtualTerminalPaymentSucceeded)
-	// mux.Get("/virtual-terminal-receipt", app.VirtualTerminalReceipt)
 
+	// router.Get("/success", app.RenderSuccess)
 	return router
 } 

@@ -33,10 +33,10 @@
 	      	 </li>
 	    	 </ul>
 				 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-				 	<li class="nav-item">
+				 	<li id="login_link" class="nav-item">
 						<a class="nav-link" href="/login">Login</a>
 					</li>
-					<li id="login_link" class="nav-item">
+					<li id="register_link" class="nav-item">
 						<a class="nav-link" href="/signup">Register</a>
 					</li>
 				 </ul>
@@ -50,53 +50,58 @@
 	
 	{{end}}
 </div>
-	
 
-	{{block "js" .}}
 		<script>
-			let loginLink = document.getElementById("login_link");
+			let loginLink = document.getElementById("login_link")
+			let regLink = document.getElementById("register_link")
 
-			document.AddEventListener("DOMContentLoaded", function() {
-				if (localStorage.getItem("token") !== null) {
-					loginLink.innerHTML == '<a class="nav-link" href="/login">Logout</a>';
+			document.addEventListener("DOMContentLoaded", function() {
+				if (localStorage.get("token") !== null) {
+					loginLink.innerHTML = '<a class="nav-link" onclick="logout()">Log out</a>'
+					regLink.classList.add("d-none")
+				} else {
+					loginLink.innerHTML = '<a class="nav-link" href="/login">Login</a>'
 				}
+				loginLink.classList.remove("d-none")
 			})
 
-			function logout() {
-				localStorage.removeItem("token");
-				localStorage.removeItem("token_expiry");
-				location.href = "/login"
-			}
+  	function logout() {
+  	  localStorage.removeItem("token");
+  	  localStorage.removeItem("token_expiry");
+  	  location.href = "/login";
+  	}
 
-			function checkAuth() {
-				if (localStorage.getItem("token") === null) {
-					location.href = "/login"
-					return
-				} else {
-					let token = localStorage.getItem("token");
-					const myHeaders = new Headers();
-					myHeaders.append("Content-Type", "application/json")
-					myHeaders.append("Authrozation", "Bearer " + token);
-				
-					const requestOptions = {
-						method: "POST",
-						headers: myHeaders,
-					}
+  	function checkAuth() {
+  	  if (localStorage.getItem("token") === null) {
+  	    location.href = "/login";
+  	    return;
+  	  } else {
+  	    let token = localStorage.getItem("token");
+  	    const myHeaders = new Headers();
+  	    myHeaders.append("Content-Type", "application/json");
+  	    myHeaders.append("Authorization", "Bearer " + token);
 
-					fetch("{{.API}}/api/is-authenticated", requestOptions)
-						.then(response => response.json())
-						.then(function(data) {
-								if (data.error === true) {
-									{{"not logged in"}}
-									location.href = "/login"
-								} else {
-									{{"logged in"}}
-								}
-						})
-				}
-			} 
+  	    const requestOptions = {
+  	      method: "POST",
+  	      headers: myHeaders,
+  	    }
 
-		</script>
+  	    fetch("{{.API}}/api/is-authenticated", requestOptions)
+  	    .then(response => response.json())
+  	    .then(function(data){
+  	      if (data.error === true) {
+    	      console.log("not logged in");
+    	      location.href = "/login";
+    	    } else {
+    	      console.log("Logged in");
+    	    }
+    	  })
+    	}
+  		}
+  
+	{{block "js" .}}	
+	
+
 	{{end}}
 
 </html>

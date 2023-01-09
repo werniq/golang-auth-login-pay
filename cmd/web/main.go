@@ -28,6 +28,8 @@ type config struct {
 	}
 }
 
+var session *scs.SessionManager
+
 type application struct {
 	cfg			  config
 	infoLog       *log.Logger
@@ -56,11 +58,11 @@ func main() {
 	gob.Register(models.User{})
 	var cfg config
 	
-	cfg.api = "4001"
+	cfg.api = "localhost:4001"
 	cfg.port = 4000
-	cfg.db.dsn = "db.dsn"
 	cfg.env = "development"
-
+	
+	cfg.db.dsn = "user=postgres dbname=potentially_deployed_site password=Matwyenko1_ host=localhost sslmode=disable"
 	cfg.stripe.key = os.Getenv("STRIPE_KEY")
 	cfg.stripe.secret = os.Getenv("STRIPE_SECRET")
 
@@ -75,7 +77,7 @@ func main() {
 
 	tc := make(map[string]*template.Template)
 	
-	session := scs.New()
+	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 
 	app := &application{

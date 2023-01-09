@@ -112,10 +112,10 @@ Authorization Page
 	        	}
             form.classList.add("was-validated");
 
-            password = document.getElementById("reg-password").value;
+            {{/* password = document.getElementById("reg-password").value;
             repeatPassword = document.getElementById("repeat_password").value;
 
-            {{/* {{ OR USERNAME, EMAIL ALREADY IN DB }} */}}
+             {{ OR USERNAME, EMAIL ALREADY IN DB }} 
             const request = {
                 username: document.getElementById("reg-username").value,
                 email: document.getElementById("reg-email").value,
@@ -135,14 +135,14 @@ Authorization Page
                 },
                 body: JSON.stringify(request),
             }
-            {{/* {{ LOCALHOST:4001/API/AUTHORIZATE -> AUTHORIATION }} */}}
+             {{ LOCALHOST:4001/API/AUTHORIZATE -> AUTHORIATION }} 
 						fetch("/process-register-data", requestOptions)
 							.then(response => response.json())
 							.then(response => {
                   let data;
                   data = JSON.Parse(response);      
                   console.log(data)          
-							})
+							}) */}}
         }
         </script>
     {{end}}

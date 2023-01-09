@@ -47,13 +47,16 @@ func (app *application) RegisterRenderWithError(w http.ResponseWriter, r *http.R
 	return nil
 }
 
+
+
 // ProcessRegisterData gets all value from request forms, and check if username is in database
 // And if it is inputed correctly(by given instructions)
 // Checks password also, and if all "Tests" are passed, save user in database
 // Returns user(if all inputs are correct), errorData, which represents all errors, or mistakes
 // while registrating. Error, if any exist. Also creates hashed password, and also stored it 
 // In database
-func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Request) (models.User, []string, error) {
+
+func (app *application) CheckUserData(r *http.Request) (models.User, []string, error) {
 	var u models.User
 	var errorData = []string{}
 
@@ -78,11 +81,11 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 	var ok bool = true
 	// Checking, if Username is valid
 	for _, v := range username {
-		if unicode.IsLetter(v) == false && unicode.IsNumber(v) == false {
+		if !unicode.IsLetter(v) && !unicode.IsNumber(v) {
 			ok = false
 		}
 	}
-	if ok == false {
+	if !ok {
 		errorData = append(errorData, "Username should contain only symbols or numbers")
 	}
 
@@ -111,8 +114,8 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 		errorData = append(errorData, "Password1 and password2 should be the same")
 	}
 
-	fmt.Println("Password is: \t", password)
-	fmt.Println("Username is: \t", username)
+	fmt.Println("Password is: 		 \t", password)
+	fmt.Println("Username is: 		 \t", username)
 	fmt.Println("Repeat password is: \t", repeatPassword)
 	for _, v := range password {
 		switch {
@@ -148,17 +151,22 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 				passwordContainUppercase = true
 		}
 	}
-	if errorData != nil {
+	// if errorData != nil {
 		// app.RegisterRenderWithError(w, r, errorData)
-		app.RegisterRenderWithError(w, r, errorData)
+		// app.RegisterRenderWithError(w, r, errorData)
 		// return u, errorData, nil
-	}
+	// }
 	fmt.Println("PROCESSING THIS------------------")
 	// Creating password hash
 	var hash []byte
 	hash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		app.errorLog.Println(err)
+		return u, errorData, err
+	}
+	if errorData != nil {
+		// app.errorLog.Println(err)
+		return u, errorData, nil
 	}
 
 	//
@@ -179,29 +187,6 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 	email := r.Form.Get("reg-email")
 	address1 := r.Form.Get("reg-address1")
 	address2 := r.Form.Get("reg-address1")
-	// dateOfBirth := r.Form.Get("reg-date-of-birth")
-	// date, err := time.Parse("2006-01-02", dateOfBirth)
-
-	// if err != nil {
-	// 	// app.errorLog.Printf("Error converting time: %s", err)
-	// }
-
-	// ctx, cancel := context.WithTimeout(context.Background(), 7 * time.Second)
-	// defer cancel()
-
-	// row = conn.QueryRowContext(
-	// 	ctx, 
-	// 	stmt, 
-	// 	username, firstname, lastname, email, 
-	// 	password, hash, address1, address2, dateOfBirth)
-	
-	// Data["username"] = username
-	// Data["firstname"] = firstname 
-	// Data["lastname"] = lastname
-	// Data["email"] = email
-	// Data["address1"] = address1 
-	// Data["address2"] = address2
-	// Data["dateOfBirth"] = dateOfBirth 
 	
 	user := models.User{
 		Username: 	 username,
@@ -218,7 +203,6 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 	}
 
 	err = app.database.SaveUser(user)	
-	fmt.Println("Error number A lot: \t", err)
 	if err != nil {
 		app.errorLog.Fatal(err)
 		return u, errorData, err
@@ -229,37 +213,37 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 	
 	// http.Redirect(w, r, "/succeeded-registration", http.StatusCreated)
 	fmt.Println("Congradulations, user registered")
+	// http.Redirect(w, r, r.Header.Get("Referer"), 302)
 	return u, errorData, nil
 }
 
-// This function jsut returns all data, which was inputed in 
-// forms(if it is inputed correctly, by given instructions)
-// And redirect to succeeded registration page 
-func (app *application) SucceededRegistration(w http.ResponseWriter, r *http.Request) {
-	var u models.User
-	var errorData = []string{}
-	// var emptyArr = []string{}
-	var err error
-	u, errorData, err = app.ProcessRegisterData(w, r)
-	fmt.Println(errorData)
-	fmt.Println(err)
-	// if errorData != nil || err != nil {
-	// 	app.errorLog.Println(err)
-	// 	return 
-	// }
-	
 
-	// app.Session.Put(r.Context(), "user-data", u)
-	// http.Redirect(w, r, "/succeeded-registration", http.StatusOK)
-	data := make(map[string]interface{})
-	data["user"] = u
-	// http.Redirect(w, r, "/succeeded-regstration", http.StatusOK)
-	if err := app.renderTemplate(w, r, "succeededRegistration", &templateData{
-		Data: data,
-	}); err != nil {
+func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Request)  {
+	// var u models.User
+	var err error
+	var errorData = []string{}
+
+	_, errorData, err = app.CheckUserData(r)
+	if err != nil {
 		app.errorLog.Println(err)
+		return
 	}
 
+	if errorData != nil {
+		app.RegisterRenderWithError(w, r, errorData)
+	}
+
+	// data := make(map[string]interface{})
+
+	// app.Session.Put(r.Context(), "receipt", u)
+	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
+	fmt.Println("Redirected")
+}
+
+func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "receipt", nil); err != nil {
+		app.errorLog.Println(err)
+	}
 }
 
 // ENDED HERE -> NEXT STEPS:
@@ -268,19 +252,4 @@ func (app *application) SucceededRegistration(w http.ResponseWriter, r *http.Req
 // CREATE AUTH TOKEN
 // CREATE FUNCTION, WHICH CHECKS IF USER TOKEN IS NOT EXPIRED
 // HI, {{USERNAME}}|
-
-
-
-
 // Login, add token to session
-func (app *application) RenderSuccess(w http.ResponseWriter, r *http.Request) {
-	var user models.User = app.Session.Get(r.Context(), "user-data").(models.User)
-	data := make(map[string]interface{})
-	data["userData"] = user
-	app.Session.Remove(r.Context(), "user-data")
-	if err := app.renderTemplate(w, r, "succeededRegistration", &templateData{
-		Data: data,
-	}); err != nil {
-		app.errorLog.Println(err)
-	}
-}

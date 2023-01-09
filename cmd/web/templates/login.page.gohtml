@@ -15,15 +15,16 @@ Login Page
         novalidate="">
         
       <div class="col-md-6">
-        <label for="email" class="form-label">Username, or Email</label>
-        <input type="text" placeholder="Superuser3301" required="" autocomplete="login_username" class="form-control" id="login-username" name="login-username">
+        <label for="email" class="form-label">Login credentials: </label>
+        <input type="text" placeholder="Username, or Email" required="" autocomplete="login_username" class="form-control" id="login_username" name="login_username">
       </div>
 
       <div class="col-md-6">
         <label for="email" class="form-label">Password</label>
-        <input type="text" placeholder="Superuser3301" required="" autocomplete="login_username" class="form-control" id="login-username" name="login-username">
+        <input type="password" required="" autocomplete="login_usernaaame" class="form-control" id="login_password" name="login_password">
       </div>
       <a id="login-button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Authenticate</a>
+      </form>
   {{end}}
 
     {{define "js"}}
@@ -55,8 +56,8 @@ Login Page
             form.classList.add("was-validated");
 
             const request = {
-                email: document.getElementById("login-email").value,
-                password: document.getElementById("login-password").value,
+                email: document.getElementById("login_username").value,
+                password: document.getElementById("login_password").value,
             }
 
             const requestOptions = {
@@ -68,7 +69,7 @@ Login Page
                 body: JSON.stringify(request),
             }
             {{/* LOCALHOST:4001/API/AUTHENTICATE -> AUTHENTICTE */}}
-						fetch("localhost:4001/api/authenticate", requestOptions)
+						fetch("{{.API}}/api/authenticate", requestOptions)
 							.then(response => response.json())
 							.then(data => {
 								console.log(data);
