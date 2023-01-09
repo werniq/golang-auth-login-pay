@@ -5,8 +5,12 @@ Login Page
 {{end}}
 
 {{define "content"}}
+
+<div class="row">
+<div class="col-md-6 offset-md-3">
     <h2 class="mt-2 text-left mb-3">Login</h2>
     <hr>
+    <div class="alert alert-danger text-center d-none" id="login-messages"></div>
     <form class="d-block row g-3 needs-validation" 
         method="post"
         action=""
@@ -15,19 +19,21 @@ Login Page
         novalidate="">
         
       <div class="col-md-6">
-        <label for="email" class="form-label">Login credentials: </label>
+        <label for="email" class="form-label">Login username: </label>
         <input type="text" placeholder="Username, or Email" required="" autocomplete="login_username" class="form-control" id="login_username" name="login_username">
       </div>
 
       <div class="col-md-6">
         <label for="email" class="form-label">Password</label>
-        <input type="password" required="" autocomplete="login_usernaaame" class="form-control" id="login_password" name="login_password">
+        <input type="password" required="" autocomplete="login_password" class="form-control" id="login_password" name="login_password">
       </div>
       <a id="login-button" href="javascript:void(0)" class="btn btn-primary" onclick="val()">Authenticate</a>
       </form>
+    </div>
+  </div>
   {{end}}
 
-    {{define "js"}}
+        {{define "js"}}
         <script> 
 				const loginMessages = document.getElementById("login-messages")   
         function showLoginError(msg) {
@@ -44,45 +50,44 @@ Login Page
             loginMessages.innerText = "Authorization successful";
         }
 
-        function val() {
-            let form = document.getElementById("login_form");
-        
-            if (form.checkValidity() == false) {
-        	    this.event.preventDefault();
-      	      this.event.stopPropagation();
-    	        form.classList.add("was-validated");
-  	          return;
-	        	}
-            form.classList.add("was-validated");
+      function val() {
+          let form = document.getElementById("login_form");
+          if (form.checkValidity() === false) {
+              this.event.preventDefault();
+              this.event.stopPropagation();
+              form.classList.add("was-validated");
+              return;
+          }
+          form.classList.add("was-validated");
 
-            const request = {
-                email: document.getElementById("login_username").value,
-                password: document.getElementById("login_password").value,
-            }
+          let payload = {
+              email: document.getElementById("login_username").value,
+              password: document.getElementById("login_password").value,
+          }
 
-            const requestOptions = {
-                method: 'post',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-type': 'application/json'
-                },
-                body: JSON.stringify(request),
+          const requestOptions = {
+              method: 'post',
+              headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+               },
+               body: JSON.stringify(payload),
+           }
+
+        fetch("{{.API}}/api/authenticate", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.error === false) {
+                localStorage.setItem('token', data.authentication_token.token);
+                localStorage.setItem('token_expiry', data.authentication_token.expiry);
+                showLoginSuccess();
+                location.href = "/";
+            } else {
+                showLoginError(data.message);
             }
-            {{/* LOCALHOST:4001/API/AUTHENTICATE -> AUTHENTICTE */}}
-						fetch("{{.API}}/api/authenticate", requestOptions)
-							.then(response => response.json())
-							.then(data => {
-								console.log(data);
-								if (data.error === false) {
-										localStorage.setItem('token', data.authentication_token.token)
-										localStorage.setItem('token_expiry', data.authentication_token.expiry)
-										showLoginSuccess();
-										location.href = "/"
-								} else {
-									showLoginError(data.message);
-								}
-							})
-        }
+        })
+    }
 
         </script>
     {{end}}

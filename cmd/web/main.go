@@ -58,7 +58,7 @@ func main() {
 	gob.Register(models.User{})
 	var cfg config
 	
-	cfg.api = "localhost:4001"
+	cfg.api = "http://localhost:4001"
 	cfg.port = 4000
 	cfg.env = "development"
 	

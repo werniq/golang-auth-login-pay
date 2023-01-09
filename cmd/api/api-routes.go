@@ -20,6 +20,7 @@ func (app *application) apiRoutes() http.Handler {
 
 
 	mux.Post("/api/authenticate", app.CreateAuthToken)
+	mux.Post("/api/is-authenticated", app.CheckAuthentication)
 
 	return mux
 }

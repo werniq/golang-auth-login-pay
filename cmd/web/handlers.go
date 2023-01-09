@@ -245,11 +245,3 @@ func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
 		app.errorLog.Println(err)
 	}
 }
-
-// ENDED HERE -> NEXT STEPS:
-// FINISH REGISTRATION FUNCTION
-// CREATE LOGIN FUNCTION
-// CREATE AUTH TOKEN
-// CREATE FUNCTION, WHICH CHECKS IF USER TOKEN IS NOT EXPIRED
-// HI, {{USERNAME}}|
-// Login, add token to session
