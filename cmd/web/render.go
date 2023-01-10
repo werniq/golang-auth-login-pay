@@ -9,18 +9,21 @@ import (
 
 // ALL THAT I WILL NEED IN MY .GOHTML FILES, I CAN DEFINE HERE, AND USE WITH .{PAR}
 type templateData struct {
-	StringMap       map[string]string
-	IntMap          map[string]int
-	FloatMap        map[string]float32
-	Data            map[string]interface{}
-	ErrorData		[]string	
-	CSRFToken       string
-	Flash           string
-	Warning         string
-	Error           string
-	IsAuthenticated int
-	API             string
-	CSSVersion      string
+	StringMap      		  map[string]string
+	IntMap         		  map[string]int
+	FloatMap       		  map[string]float32
+	Data           		  map[string]interface{}
+	IsAuthenticated 	  int
+	MainnetAddress		  string
+	ErrorData			  []string	
+	StripeSecretKey		  string
+	StripePublishableKey  string
+	CSRFToken       	  string
+	Flash           	  string
+	Warning         	  string
+	Error           	  string
+	API             	  string
+	CSSVersion      	  string
 }
 
 //go:embed templates
@@ -28,8 +31,9 @@ var templateFS embed.FS
 
 func (app *application) addDefaultData(td *templateData, r *http.Request) *templateData {
 	td.API = app.cfg.api
-	// td.StripeSecretKey = app.config.stripe.secret
-	// td.StripePublishableKey = app.config.stripe.key
+	td.MainnetAddress = "0x59ABDFCc700DfB6fFf671B2198B26107f6AFE036"
+	td.StripeSecretKey = app.cfg.stripe.secret
+	td.StripePublishableKey = app.cfg.stripe.key
 	return td
 }
 

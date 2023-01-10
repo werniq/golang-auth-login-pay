@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 )
 
@@ -13,14 +14,7 @@ type DBModel struct {
 type Models struct {
 	Database DBModel
 }
-/*
-	username := r.Form.Get("reg-username")
-	email := r.Form.Get("reg-email")
-	password := r.Form.Get("reg-password")
-	address1 := r.Form.Get("reg-address1")
-	address2 := r.Form.Get("reg-address1")
-	city := r.Form.Get("reg-city")
-*/
+
 // User type is used for storing user's data
 type User struct {
 	ID 				   int 				`json:"id"`
@@ -37,6 +31,51 @@ type User struct {
 	UpdatedAt 	 	   time.Time 		`json:"-"`
 }
 
+// Order is the type for all orders
+type Order struct {
+	ID            int       `json:"id"`
+	ProductID      int       `json:"widget_id"`
+	TransactionID int       `json:"transaction_id"`
+	CustomerID    int       `json:"customer_id"`
+	StatusID      int       `json:"status_id"`
+	Quantity      int       `json:"quantity"`
+	Amount        int       `json:"amount"`
+	CreatedAt     time.Time `json:"-"`
+	UpdatedAt     time.Time `json:"-"`
+}
+
+// Status is the type for order statuses
+type Status struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+// TransactionStatus is the type for transaction statuses
+type TransactionStatus struct {
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+}
+
+// Transaction is the type for transactions
+type Transaction struct {
+	ID                  int       `json:"id"`
+	Amount              int       `json:"amount"`
+	Currency            string    `json:"currency"`
+	LastFour            string    `json:"last_four"`
+	ExpiryMonth         int       `json:"expiry_month"`
+	ExpiryYear          int       `json:"expiry_year"`
+	PaymentIntent       string    `json:"payment_intent"`
+	PaymentMethod       string    `json:"payment_method"`
+	BankReturnCode      string    `json:"bank_return_code"`
+	TransactionStatusID int       `json:"transaction_status_id"`
+	CreatedAt           time.Time `json:"-"`
+	UpdatedAt           time.Time `json:"-"`
+}
+
 // Tx represents normal transaction, using debit card
 type Tx struct {
 	ID 		  		int 			`json:"tx_id"`
@@ -46,7 +85,7 @@ type Tx struct {
 	Message 		string 			`json:"message"`
 	Recipient 		User 			`json:"recipient"`
 	Sender    		User			`json:"tx_organizer"`
-	Currency  		Currency		`json:"cryptocurrency"`
+	Currency  		Currency		`json:"currency"`
 }
 
 // CryptoTx represents crypto transaction. However, it is stored in blockchain, I decided to also store in database.
@@ -123,35 +162,24 @@ func (m *DBModel) SaveUser(user User) error {
 
 
 func (m *DBModel) GetUserByEmailOrUsername(email string) (User, error) {
-	var err error
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	
-	stmt := `
-		SELECT 
-			(id, firstname, lastname, username, email, password, address1, address2, DateOfBirth, createdat)
-		FROM 
-			users
-		WHERE username = $1 OR email = $1	
-	`
 
-	row := m.Db.QueryRowContext(ctx, stmt, email)
-	
+	email = strings.ToLower(email)
 	var u User
-	err = row.Scan(
-		&u.ID,
-		&u.Firstname,
-		&u.Lastname,
-		&u.Username,
+
+	row := m.Db.QueryRowContext(ctx, `
+		SELECT
+			(id, first_name, last_name, email, password, address1, address2, created_at, updated_at)
+		FROM
+			users
+		WHERE username = ?`, email)
+
+	err := row.Scan(
 		&u.Email,
 		&u.Password,
-		&u.Address1,
-		&u.Address2,
-		&u.DateOfBirth,
-		&u.CreatedAt,
 	)
-	
+
 	if err != nil {
 		return u, err
 	}

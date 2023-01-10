@@ -11,14 +11,14 @@ func (app *application) routes() http.Handler {
 
 	router.Use(SessionLoad)
 
-	router.Get("/login", app.Authentication)
 	router.Get("/", app.HomeHandler)
-
 	router.Get("/signup", app.Authorization)
-	router.Post("/succeeded-registration", app.ProcessRegisterData)
+	router.Get("/login", app.Authentication)
 	router.Get("/receipt", app.Receipt)
+	
+	router.Get("/donate", app.Donate)
+	
+	router.Post("/succeeded-registration", app.ProcessRegisterData)
 
-
-	// router.Get("/success", app.RenderSuccess)
 	return router
 } 

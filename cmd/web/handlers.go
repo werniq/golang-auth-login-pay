@@ -241,7 +241,14 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplate(w, r, "receipt", nil); err != nil {
+	if err := app.renderTemplate(w, r, "receipt", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+
+func (app *application) Donate(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "donate", &templateData{}); err != nil {
 		app.errorLog.Println(err)
 	}
 }

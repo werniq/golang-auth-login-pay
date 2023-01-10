@@ -237,8 +237,8 @@ func (app *application) ProcessRegisterData(r *http.Request) (models.User, []str
 func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		// Username string `json:"username"`
-		Email 	 string `json:"email"`
- 		Password string `json:"password"`
+		Username 	 string `json:"username"`
+ 		Password	 string `json:"password"`
 	}	
 
 	err := app.ReadJSON(w, r, &request)
@@ -249,7 +249,7 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 
 
 	// get the user from database by email or username 
-	user, err := app.database.GetUserByEmailOrUsername(request.Email)
+	user, err := app.database.GetUserByEmailOrUsername(request.Username)
 	if err != nil {
 		app.InvalidCredentials(w)
 		return
@@ -308,42 +308,43 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 }	
 
 func (app *application) AuthenticateToken(r *http.Request) (*models.User, error) {
-	authorizationToken := r.Header.Get("Authorization")
-	if authorizationToken == "" {
-		return nil, errors.New("no authorization token recieved")
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		return nil, errors.New("no authorization header received")
 	}
 
-	headerParts := strings.Split(authorizationToken, " ")
+	headerParts := strings.Split(authorizationHeader, " ")
 	if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-		return nil, errors.New("no authorization header recieved")
+		return nil, errors.New("no authorization header received")
 	}
 
 	token := headerParts[1]
 	if len(token) != 26 {
-		return nil, errors.New("authorization token wrong size")
+		return nil, errors.New("authentication token wrong size")
 	}
 
+	// get the user from the tokens table
 	user, err := app.database.GetUserForToken(token)
 	if err != nil {
-		return nil, errors.New("no matching users found")
+		return nil, errors.New("no matching user found")
 	}
-
 
 	return user, nil
 }
 
 func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
+	// validate the token, and get associated user
 	user, err := app.AuthenticateToken(r)
 	if err != nil {
 		app.InvalidCredentials(w)
 		return
 	}
 
+	// valid user
 	var payload struct {
-		Error 	bool `json:"error"`
+		Error   bool   `json:"error"`
 		Message string `json:"message"`
 	}
-
 	payload.Error = false
 	payload.Message = fmt.Sprintf("authenticated user %s", user.Email)
 
