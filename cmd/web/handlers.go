@@ -261,3 +261,9 @@ func (app *application) ChargeCreditCard(w http.ResponseWriter, r *http.Request)
 		app.errorLog.Println(err)
 	}
 }
+
+func (app *application) CryptoAuthentication(w http.ResponseWriter, r *http.Request) {	
+	if err := app.renderTemplate(w, r, "crypto-login", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}

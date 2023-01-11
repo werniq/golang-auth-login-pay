@@ -233,82 +233,66 @@ func (app *application) ProcessRegisterData(r *http.Request) (models.User, []str
 	fmt.Println("Congradulations, user registered")
 	return u, errorData, nil
 }
-
 func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) {
-	var request struct {
-		// Username string `json:"username"`
-		Email 	 	 string `json:"email"`
- 		Password	 string `json:"password"`
-	}	
+	var userInput struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-	err := app.readJSON(w, r, &request)
+	err := app.readJSON(w, r, &userInput)
 	if err != nil {
 		app.badRequest(w, r, err)
 		return
 	}
 
-
-	// get the user from database by email or username 
-	user, err := app.database.GetUserByEmail(request.Email)
+	// get the user from the database by email; send error if invalid email
+	user, err := app.database.GetUserByEmail(userInput.Email)
 	if err != nil {
 		app.invalidCredentials(w)
-		fmt.Println("awww")
 		return
 	}
 
-	// validate the password, with one from database
-	validPassword, err := app.validatePassword(user.Password, request.Password)
+	// validate the password; send error if invalid password
+	validPassword, err := app.passwordMatches(user.Password, userInput.Password)
+	if err != nil {
+		app.invalidCredentials(w)
+		return
+	}
 
 	if !validPassword {
 		app.invalidCredentials(w)
 		return
 	}
 
+	// generate the token
+	token, err := models.GenerateToken(user.ID, 24*time.Hour, models.ScopeAuthentication)
 	if err != nil {
-		app.invalidCredentials(w)
+		app.badRequest(w, r, err)
 		return
 	}
 
-	// Generate token for user
-	token, err := models.GenerateToken(user.ID, 24 * time.Hour, models.ScopeAuthentication)
-	if err != nil {
-		app.badRequest(w, r, err)
-		return 
-	}
-	
-	// Save to database
+	// save to database
 	err = app.database.InsertToken(token, user)
 	if err != nil {
 		app.badRequest(w, r, err)
 		return
 	}
 
+	// send response
 
 	var payload struct {
-		Error 	bool 		  `json:"error"`
-		Message string 		  `json:"message"`
-		Token	*models.Token `json:"token"`
+		Error   bool          `json:"error"`
+		Message string        `json:"message"`
+		Token   *models.Token `json:"authentication_token"`
 	}
-
-
 	payload.Error = false
-	payload.Message = "Success"
+	payload.Message = fmt.Sprintf("token for %s created", userInput.Email)
 	payload.Token = token
 
-	out, err := json.MarshalIndent(payload, "", "\t")
-	if err != nil {
-		app.errorLog.Println(err)
-		return
-	}
+	_ = app.writeJSON(w, http.StatusOK, payload)
+}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(out)
-
-
-}	
-
-func (app *application) AuthenticateToken(r *http.Request) (*models.User, error) {
+func (app *application) authenticateToken(r *http.Request) (*models.User, error) {
 	authorizationHeader := r.Header.Get("Authorization")
 	if authorizationHeader == "" {
 		return nil, errors.New("no authorization header received")
@@ -335,7 +319,7 @@ func (app *application) AuthenticateToken(r *http.Request) (*models.User, error)
 
 func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
 	// validate the token, and get associated user
-	user, err := app.AuthenticateToken(r)
+	user, err := app.authenticateToken(r)
 	if err != nil {
 		app.invalidCredentials(w)
 		return

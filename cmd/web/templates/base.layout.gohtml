@@ -8,10 +8,10 @@
 		{{block "style" .}}
 
 		{{end}}
-		
 		<link rel="stylesheet" href="button.css">
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+		<script src="https://github.com/ChainSafe/web3.js/blob/v1.2.11/dist/web3.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
 		<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
 		<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>	
@@ -51,6 +51,9 @@
 						<li id="register_link" class="nav-item">
 							<a class="nav-link" href="/signup">Register</a>
 						</li>
+						<li class="nav-item">
+							<button type="button" id="connectWeb3_link" class="mr-3 btn btn-primary" onclick="ethEnabled()">Connect wallet</button>
+						</li>
 					 </ul>
 		  	 </div>
 			 </div>
@@ -64,8 +67,23 @@
 			</div>
 
 			<script>
+			
 				let loginLink = document.getElementById("login_link")
 				let regLink = document.getElementById("register_link")
+				const Web3 = require("web3");
+					async function ethEnabled() {
+						const button = document.getElementById("connectWeb3_link")
+						if (window.ethereum) {
+   						 await window.ethereum.request({method: 'eth_requestAccounts'});
+						    window.web3 = new Web3(window.ethereum);
+						    button.innerHTML = "Connected";
+								button.classList.remove("btn-primary")
+								button.classList.add("btn-success")
+								return true;
+					}
+						return false;
+					}
+					
 
 				document.addEventListener("DOMContentLoaded", function() {
 					if (localStorage.getItem("token") !== null) {
@@ -110,9 +128,13 @@
     				  })
     				}
   				}
+
+					
+					
+
  				 </script>
 				{{block "js" .}}	
-			{{end}}
+				{{end}}
 	</body>
 </html>
 {{end}}

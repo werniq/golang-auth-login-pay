@@ -20,7 +20,7 @@ func (app *application) routes() http.Handler {
 	// router.Get("/exec-")
 
 	router.Get("/donate", app.Donate)
-	
+	router.Get("/crypto-authentication", app.CryptoAuthentication)
 	router.Post("/succeeded-registration", app.ProcessRegisterData)
 
 	fileServer := http.FileServer(http.Dir("./static"))
