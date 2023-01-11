@@ -240,15 +240,24 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 	fmt.Println("Redirected")
 }
 
+// Receipt returns rendered page, with request data, or data which was in session.
 func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
 	if err := app.renderTemplate(w, r, "receipt", &templateData{}); err != nil {
 		app.errorLog.Println(err)
 	}
 }
 
-
+// Donate renders template, for choosing whether you want donate in crypto or with credit card
 func (app *application) Donate(w http.ResponseWriter, r *http.Request) {
 	if err := app.renderTemplate(w, r, "donate", &templateData{}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+
+// ChargeCreditCard renders template, for donating with credit card
+func (app *application) ChargeCreditCard(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplate(w, r, "exec-donate", &templateData{}); err != nil {
 		app.errorLog.Println(err)
 	}
 }

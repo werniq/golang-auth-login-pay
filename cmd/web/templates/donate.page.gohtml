@@ -1,0 +1,103 @@
+{{template "base" .}}
+
+ {{define "style" }}
+		<style>
+			body {
+		    background: #000;
+		}
+
+		.my-button {
+				align: center;
+		    transform: translate(-50%, 50%);
+		    width: 200px;
+		    height: 60px;
+		    text-align: center;
+		    line-height: 60px;
+		    color: #ffffff;
+		    font-size: 12px;
+				padding: 15px;
+		    text-transform: uppercase;
+		    text-decoration: none;
+		    box-sizing: border-box;
+		    background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+		    background-size: 400%;
+		    border-radius: 7px;
+		  	z-index: 1;
+		}   
+
+		.my-button:hover {
+				color: black;
+		    animation: animate 8s linear infinite;
+		}
+
+		@keyframes animate {
+		    0% {
+		        background-position: 0;
+		    }
+
+		    100% {
+		        background-position: 400%;
+		    }
+		}
+
+		.my-button:hover:before {
+		    filter: blur(20px);
+		    opacity: 1;
+		    animation: animate 8s linear infinite;
+		}
+
+		.my-button:before {
+		    content: '';
+		    z-index: 1;
+		    background: linear-gradient(90deg, #03a9f4, #f441a5, #ffeb3b, #03a9f4);
+		    background-size: 400%;
+		    border-radius: 40px;
+		    opacity: 0;
+		    transition: 0.5s;
+		}
+		</style>
+	{{end}}
+
+
+{{define "title"}}
+Donations!
+{{end}}
+
+{{define "content"}}
+<div class="row">
+ 		<h2 class="mt-3" ml-3>Choose payment method:</h2>
+		<hr>
+<div class="row col-md-4 offset-md-2">
+
+		<div class="mt-3 p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3">
+		<img src="https://th.bing.com/th/id/R.06a5be0241518d58370d5841367e607c?rik=ktfKqnBdFpEHqw&pid=ImgRaw&r=0"  class="image-fluid rounded mx-auto d-block" alt="eth" width="200px" height="125px">
+ 		 	<div class="card-body">
+ 		   	<h5 class="card-title">ETH</h5>
+ 		   	<p class="card-text">Payment with crypto has some prevelegies, such as: </p>
+ 		   	<p class="card-text">Faster executing </p>
+ 		   	<p class="card-text">Less commission </p>
+ 		  	<a href="/charge-credit-card" class="my-button">I want to donate in crypto!</a>
+ 		  </div>
+ 		</div>
+ 	</div>
+
+	<div class="row col-md-4 offset-md-2">
+		<div class="mt-3 p-3 text-primary-emphasis bg-primary-subtle border border-primary-subtle rounded-3">
+ 		  <img src="https://th.bing.com/th/id/R.eccfc8c41dccbd3be76d107cd890b52c?rik=bccvzdEBli6mLw&pid=ImgRaw&r=0" class="image-fluid rounded mx-auto d-block" alt="visa" width="200px" height="125px">
+ 		  	<div class="card-body">
+ 		    	<h5 class="card-title">Common payment by credit card</h5>
+ 		    	<p class="card-text">Quick, and without any doubts</p>
+ 		    	<p class="card-text">Visa, MasterCard..</p>
+ 		    	<p class="card-text">As you prefer :3</p>
+ 		    	<a href="/exec-crypto-tx" class="my-button">I want to donate with credit card!</a>
+	 			</div>
+			</div>
+		</div>
+ 	</div>
+</div>
+
+{{/* 	/charge-credit-card 
+			/exec-crypto-tx
+*/}}
+		
+{{end}}

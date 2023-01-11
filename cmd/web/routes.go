@@ -15,10 +15,16 @@ func (app *application) routes() http.Handler {
 	router.Get("/signup", app.Authorization)
 	router.Get("/login", app.Authentication)
 	router.Get("/receipt", app.Receipt)
-	
+	router.Get("/charge-credit-card", app.ChargeCreditCard)
+	// router.Post("/process-card-data", app.ProcessCardData)
+	// router.Get("/exec-")
+
 	router.Get("/donate", app.Donate)
 	
 	router.Post("/succeeded-registration", app.ProcessRegisterData)
+
+	fileServer := http.FileServer(http.Dir("./static"))
+	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
 	return router
 } 

@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"database/sql"
-	"strings"
 	"time"
 )
 
@@ -161,23 +160,34 @@ func (m *DBModel) SaveUser(user User) error {
 }
 
 
-func (m *DBModel) GetUserByEmailOrUsername(email string) (User, error) {
+// GetUserByEmail gets a user by email address
+func (m *DBModel) GetUserByEmail(email string) (User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	email = strings.ToLower(email)
+	// email = strings.ToLower(email)
 	var u User
 
 	row := m.Db.QueryRowContext(ctx, `
-		SELECT
-			(id, first_name, last_name, email, password, address1, address2, created_at, updated_at)
-		FROM
+		select
+			id, firstname, lastname, username, password, hashedpassword, email , created_at, updated_at, DateOfBirth, address1, address2
+		from
 			users
-		WHERE username = ?`, email)
+		where email = ? OR username = ?`, email, email)
 
 	err := row.Scan(
-		&u.Email,
+		&u.ID,
+		&u.Firstname,
+		&u.Lastname,
+		&u.Username,
 		&u.Password,
+		&u.UserHashedPassword,
+		&u.Email,
+		&u.CreatedAt,
+		&u.UpdatedAt,
+		&u.DateOfBirth,
+		&u.Address1,
+		&u.Address2,
 	)
 
 	if err != nil {
@@ -186,4 +196,3 @@ func (m *DBModel) GetUserByEmailOrUsername(email string) (User, error) {
 
 	return u, nil
 }
-

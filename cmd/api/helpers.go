@@ -9,26 +9,26 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (app *application) ReadJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
-	var maxBytes int = 1048576
-	
+func (app *application) readJSON(w http.ResponseWriter, r *http.Request, data interface{}) error {
+	maxBytes := 1048576 // max one megabyte in request body
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(data)
 
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(data)
 	if err != nil {
-		app.errorLog.Println(err)
 		return err
 	}
-	err = decoder.Decode(&struct{}{})
+
+	// we only allow one entry in the json file
+	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
-		return errors.New("body must only include single json value")
+		return errors.New("body must only have a single JSON value")
 	}
 
 	return nil
 }
 
-func (app *application) BadRequest(w http.ResponseWriter, r *http.Request, err error) error {
+func (app *application) badRequest(w http.ResponseWriter, r *http.Request, err error) error {
 	var payload struct {
 		Error bool `json:"error"`
 		Message string `json:"message"`
@@ -66,7 +66,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	return nil
 }
 
-func (app *application) InvalidCredentials(w http.ResponseWriter) error {
+func (app *application) invalidCredentials(w http.ResponseWriter) error {
 	var payload struct {
 		Error bool `json:"error"`
 		Message string `json:"message"`
@@ -84,15 +84,17 @@ func (app *application) InvalidCredentials(w http.ResponseWriter) error {
 	return nil
 }
 
-func (app *application) ValidatePassword(hash, password string) (bool, error) {
+
+func (app *application) validatePassword(hash, password string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
 			return false, nil
-		default: 
+		default:
 			return false, err
 		}
 	}
+
 	return true, nil
 }

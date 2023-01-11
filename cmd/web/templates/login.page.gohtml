@@ -51,28 +51,28 @@ Login Page
         }
 
       function val() {
-          let form = document.getElementById("login_form");
-          if (form.checkValidity() === false) {
-              this.event.preventDefault();
-              this.event.stopPropagation();
-              form.classList.add("was-validated");
-              return;
-          }
-          form.classList.add("was-validated");
+     let form = document.getElementById("login_form");
+     if (form.checkValidity() === false) {
+         this.event.preventDefault();
+         this.event.stopPropagation();
+         form.classList.add("was-validated");
+         return;
+     }
+     form.classList.add("was-validated");
 
-          let payload = {
-              email: document.getElementById("login_username").value,
-              password: document.getElementById("login_password").value,
-          }
+     let payload = {
+         email: document.getElementById("email").value,
+         password: document.getElementById("password").value,
+     }
 
-          const requestOptions = {
-              method: 'post',
-              headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-               },
-               body: JSON.stringify(payload),
-           }
+     const requestOptions = {
+         method: 'post',
+         headers: {
+             'Accept': 'application/json',
+             'Content-Type': 'application/json'
+         },
+         body: JSON.stringify(payload),
+     }
 
         fetch("{{.API}}/api/authenticate", requestOptions)
         .then(response => response.json())
@@ -81,13 +81,12 @@ Login Page
             if (data.error === false) {
                 localStorage.setItem('token', data.authentication_token.token);
                 localStorage.setItem('token_expiry', data.authentication_token.expiry);
-                showLoginSuccess();
+                showSuccess();
                 location.href = "/";
             } else {
-                showLoginError(data.message);
+                showError(data.message);
             }
         })
     }
-
-        </script>
-    {{end}}
+    </script>
+{{end}}

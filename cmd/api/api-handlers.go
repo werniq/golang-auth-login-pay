@@ -237,48 +237,49 @@ func (app *application) ProcessRegisterData(r *http.Request) (models.User, []str
 func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		// Username string `json:"username"`
-		Username 	 string `json:"username"`
+		Email 	 	 string `json:"email"`
  		Password	 string `json:"password"`
 	}	
 
-	err := app.ReadJSON(w, r, &request)
+	err := app.readJSON(w, r, &request)
 	if err != nil {
-		app.BadRequest(w, r, err)
+		app.badRequest(w, r, err)
 		return
 	}
 
 
 	// get the user from database by email or username 
-	user, err := app.database.GetUserByEmailOrUsername(request.Username)
+	user, err := app.database.GetUserByEmail(request.Email)
 	if err != nil {
-		app.InvalidCredentials(w)
+		app.invalidCredentials(w)
+		fmt.Println("awww")
 		return
 	}
 
 	// validate the password, with one from database
-	validPassword, err := app.ValidatePassword(user.Password, request.Password)
+	validPassword, err := app.validatePassword(user.Password, request.Password)
 
 	if !validPassword {
-		app.InvalidCredentials(w)
+		app.invalidCredentials(w)
 		return
 	}
 
 	if err != nil {
-		app.InvalidCredentials(w)
+		app.invalidCredentials(w)
 		return
 	}
 
 	// Generate token for user
 	token, err := models.GenerateToken(user.ID, 24 * time.Hour, models.ScopeAuthentication)
 	if err != nil {
-		app.BadRequest(w, r, err)
+		app.badRequest(w, r, err)
 		return 
 	}
 	
 	// Save to database
 	err = app.database.InsertToken(token, user)
 	if err != nil {
-		app.BadRequest(w, r, err)
+		app.badRequest(w, r, err)
 		return
 	}
 
@@ -336,7 +337,7 @@ func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Reque
 	// validate the token, and get associated user
 	user, err := app.AuthenticateToken(r)
 	if err != nil {
-		app.InvalidCredentials(w)
+		app.invalidCredentials(w)
 		return
 	}
 
