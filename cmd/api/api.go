@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 	"web-application/internal/models"
+	driver "web-application/internal/models/drivers"
 
 	_ "github.com/lib/pq"
 )
@@ -79,7 +80,7 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	conn, err := OpenDB(cfg.db.dsn)
+	conn, err := driver.OpenDB(cfg.db.dsn)
 
 	if err != nil {
 		fmt.Println(err)
