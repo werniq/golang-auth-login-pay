@@ -12,6 +12,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type User struct {
+	ID 				   int 				`json:"id"`
+	Firstname 		   string 			`json:"firstname"`
+	Lastname 		   string 			`json:"lastname"`
+	Username 		   string 			`json:"username"`
+	Password		   string 			`json:"password"`
+	UserHashedPassword []byte   		`json:"hashed_password"`
+	Address1 	 	   string 			`json:"address1"`
+	Address2 	 	   string 			`json:"address2"`
+	Email 		 	   string 			`json:"email"`
+	DateOfBirth  	   time.Time 		`json:"date_of_birth"`
+	CreatedAt 	 	   time.Time		`json:"-"`
+	UpdatedAt 	 	   time.Time 		`json:"-"`
+}
+
+
 func (app *application) Authentication(w http.ResponseWriter, r *http.Request) {
 	if err := app.renderTemplate(w, r, "login", nil); err != nil {
 		app.errorLog.Println(err)
@@ -56,8 +72,8 @@ func (app *application) RegisterRenderWithError(w http.ResponseWriter, r *http.R
 // while registrating. Error, if any exist. Also creates hashed password, and also stored it 
 // In database
 
-func (app *application) CheckUserData(r *http.Request) (models.User, []string, error) {
-	var u models.User
+func (app *application) CheckUserData(w http.ResponseWriter,r *http.Request) (User, []string, error) {
+	var u User
 	var errorData = []string{}
 
 
@@ -151,11 +167,11 @@ func (app *application) CheckUserData(r *http.Request) (models.User, []string, e
 				passwordContainUppercase = true
 		}
 	}
-	// if errorData != nil {
+	if errorData != nil {
 		// app.RegisterRenderWithError(w, r, errorData)
 		// app.RegisterRenderWithError(w, r, errorData)
-		// return u, errorData, nil
-	// }
+		return u, errorData, nil
+	}
 	fmt.Println("PROCESSING THIS------------------")
 	// Creating password hash
 	var hash []byte
@@ -222,19 +238,23 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 	// var u models.User
 	var err error
 	var errorData = []string{}
+	var u User
 
-	_, errorData, err = app.CheckUserData(r)
+	u, errorData, err = app.CheckUserData(w, r)
 	if err != nil {
 		app.errorLog.Println(err)
+		// app.RegisterRenderWithError(w, r, errorData)
 		return
 	}
 
 	if errorData != nil {
 		app.RegisterRenderWithError(w, r, errorData)
+		return
 	}
 
 	// data := make(map[string]interface{})
-
+	// Something here..
+	app.Session.Put(r.Context(), "user", u)
 	// app.Session.Put(r.Context(), "receipt", u)
 	http.Redirect(w, r, "/receipt", http.StatusSeeOther)
 	fmt.Println("Redirected")
@@ -242,7 +262,13 @@ func (app *application) ProcessRegisterData(w http.ResponseWriter, r *http.Reque
 
 // Receipt returns rendered page, with request data, or data which was in session.
 func (app *application) Receipt(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplate(w, r, "receipt", &templateData{}); err != nil {
+	u := app.Session.Get(r.Context(), "user").(User)
+	data := make(map[string]interface{})
+	data["user"] = u
+	app.Session.Remove(r.Context(), "user")
+	if err := app.renderTemplate(w, r, "receipt", &templateData{
+		Data: data,
+	}); err != nil {
 		app.errorLog.Println(err)
 	}
 }
