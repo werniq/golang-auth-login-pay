@@ -3,6 +3,8 @@ package models
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -25,7 +27,6 @@ type User struct {
 	Address1 	 	   string 			`json:"address1"`
 	Address2 	 	   string 			`json:"address2"`
 	Email 		 	   string 			`json:"email"`
-	DateOfBirth  	   time.Time 		`json:"date_of_birth"`
 	CreatedAt 	 	   time.Time		`json:"-"`
 	UpdatedAt 	 	   time.Time 		`json:"-"`
 }
@@ -142,7 +143,6 @@ func (m *DBModel) SaveUser(user User) error {
 		user.Address1,
 		user.Address2,
 		user.Email,
-		// user.DateOfBirth,
 		user.CreatedAt,
 		user.UpdatedAt,
 	)
@@ -162,18 +162,20 @@ func (m *DBModel) SaveUser(user User) error {
 
 // GetUserByEmail gets a user by email address
 func (m *DBModel) GetUserByEmail(email string) (User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	_, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-
+	
 	// email = strings.ToLower(email)
 	var u User
 
-	row := m.Db.QueryRowContext(ctx, `
-		select
-			id, firstname, lastname, username, password, hashedpassword, email , created_at, updated_at, DateOfBirth, address1, address2
-		from
+	email=strings.ToLower(email)
+
+	row := m.Db.QueryRow(`
+		SELECT
+			(id, firstname, lastname, username, password, hashedpassword, email, createdat, updatedat, address1, address2)
+		FROM
 			users
-		where email = ? OR username = ?`, email, email)
+		WHERE email = '$1'`, email)
 
 	err := row.Scan(
 		&u.ID,
@@ -185,14 +187,55 @@ func (m *DBModel) GetUserByEmail(email string) (User, error) {
 		&u.Email,
 		&u.CreatedAt,
 		&u.UpdatedAt,
-		&u.DateOfBirth,
 		&u.Address1,
 		&u.Address2,
 	)
+	fmt.Println(err)
 
 	if err != nil {
 		return u, err
 	}
 
 	return u, nil
+}
+
+
+func (m *DBModel) InsertTX(tx Transaction) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+	defer cancel()
+
+	stmt := `
+		INSERT INTO
+			transactions (amount, currency, last_four, bank_return_code, expiry_month, expiry_year,
+			payment_intent, payment_method, 
+			transaction_status_id, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	`
+
+	row, err := m.Db.ExecContext(ctx, stmt, 
+		tx.Amount,
+		tx.Currency,
+		tx.LastFour,
+		tx.BankReturnCode,
+		tx.ExpiryMonth,
+		tx.ExpiryYear,
+		tx.PaymentIntent,
+		tx.PaymentMethod,
+		tx.TransactionStatusID,
+		tx.CreatedAt,
+		tx.UpdatedAt,
+	)
+
+
+	if err != nil {
+		fmt.Println("Error inserting tx")
+		return 0, err
+	}
+
+	id, err := row.LastInsertId()
+	if err != nil {
+		fmt.Println("Error getting last insert id")
+		return 0, err
+	}
+	return int(id), nil
 }

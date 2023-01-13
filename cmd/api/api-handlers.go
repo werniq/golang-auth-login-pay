@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"web-application/internal/cards"
 	"web-application/internal/models"
 	driver "web-application/internal/models/drivers"
 
@@ -72,6 +73,7 @@ func (app *application) GetPaymentIntent(w http.ResponseWriter, r *http.Request)
 		out, err := json.MarshalIndent(pi, "", "   ")
 		if err != nil {
 			app.errorLog.Println(err)
+			fmt.Println("working proces..")
 			return
 		}
 
