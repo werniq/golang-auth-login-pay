@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-// ALL THAT I WILL NEED IN MY .GOHTML FILES, I CAN DEFINE HERE, AND USE WITH .{PAR}
 type templateData struct {
 	StringMap      		  map[string]string
 	IntMap         		  map[string]int
